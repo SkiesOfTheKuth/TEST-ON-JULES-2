@@ -3,11 +3,12 @@
 <head>
     <title>Calculator</title>
     <link rel="stylesheet" type="text/css" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.2/math.min.js"></script>
 </head>
 <body>
     <div class="app-container">
         <div class="header">
-            <h1>Calculator</h1>
+            <h1>Scientific Calculator</h1>
             <button id="theme-switcher">Toggle Theme</button>
         </div>
         <div class="main-container">
@@ -16,22 +17,36 @@
                     <input type="text" id="result" disabled>
                 </div>
                 <div class="keys">
+                    <button id="mem-clear">MC</button>
+                    <button id="mem-recall">MR</button>
+                    <button id="mem-plus">M+</button>
+                    <button id="mem-minus">M-</button>
+
+                    <button id="l-paren">(</button>
+                    <button id="r-paren">)</button>
+                    <button id="exponent">^</button>
+                    <button id="backspace">DEL</button>
+
                     <button id="clear">C</button>
                     <button id="sqrt">√</button>
                     <button id="percent">%</button>
-                    <button>/</button>
+                    <button id="divide">/</button>
+
                     <button>7</button>
                     <button>8</button>
                     <button>9</button>
-                    <button>*</button>
+                    <button id="multiply">*</button>
+
                     <button>4</button>
                     <button>5</button>
                     <button>6</button>
-                    <button>-</button>
+                    <button id="subtract">-</button>
+
                     <button>1</button>
                     <button>2</button>
                     <button>3</button>
-                    <button>+</button>
+                    <button id="add">+</button>
+
                     <button>0</button>
                     <button>.</button>
                     <button id="equal" class="span-two">=</button>

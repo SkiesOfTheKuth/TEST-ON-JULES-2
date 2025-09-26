@@ -1,5 +1,6 @@
 let calculationHistory = [];
-let isResultDisplayed = false; // Flag to track if the last action was a calculation
+let isResultDisplayed = false;
+let memory = 0;
 
 document.addEventListener('DOMContentLoaded', function() {
     const keys = document.querySelector('.keys');
@@ -18,16 +19,13 @@ document.addEventListener('DOMContentLoaded', function() {
         applyTheme(isDark ? 'light' : 'dark');
     });
 
-    // Load saved theme
     const savedTheme = localStorage.getItem('calculator-theme') || 'light';
     applyTheme(savedTheme);
-    // --- END THEME SWITCHER LOGIC ---
 
     // --- CLEAR HISTORY LOGIC ---
     clearHistoryButton.addEventListener('click', () => {
         clearHistory();
     });
-    // --- END CLEAR HISTORY LOGIC ---
 
     // Handle button clicks
     keys.addEventListener('click', event => {
@@ -40,17 +38,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle keyboard input
     document.addEventListener('keydown', event => {
         const key = event.key;
-        pressButton(key); // Provide visual feedback for key press
+        pressButton(key);
 
-        if ((key >= '0' && key <= '9') || ['+', '-', '*', '/', '.'].includes(key)) {
+        if ((key >= '0' && key <= '9') || ['+', '-', '*', '/', '.', '(', ')', '^'].includes(key)) {
             display(key);
         } else if (key === 'Enter' || key === '=') {
             event.preventDefault();
             calculate();
-        } else if (key === 'Backspace') {
-            const result = document.getElementById("result");
-            result.value = result.value.slice(0, -1);
-            isResultDisplayed = false; // User is editing
+        } else if (key === 'Backspace' || key === 'Delete') {
+            backspace();
         } else if (key === 'Escape' || key.toLowerCase() === 'c') {
             clearScreen();
         } else if (key === '%') {
@@ -62,16 +58,37 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function handleAction(action, content) {
-    if (action === 'clear') {
-        clearScreen();
-    } else if (action === 'equal') {
-        calculate();
-    } else if (action === 'sqrt') {
-        calculateSquareRoot();
-    } else if (action === 'percent') {
-        calculatePercentage();
-    } else {
-        display(content);
+    switch (action) {
+        case 'clear':
+            clearScreen();
+            break;
+        case 'equal':
+            calculate();
+            break;
+        case 'sqrt':
+            calculateSquareRoot();
+            break;
+        case 'percent':
+            calculatePercentage();
+            break;
+        case 'backspace':
+            backspace();
+            break;
+        case 'mem-clear':
+            memoryClear();
+            break;
+        case 'mem-recall':
+            memoryRecall();
+            break;
+        case 'mem-plus':
+            memoryAdd();
+            break;
+        case 'mem-minus':
+            memorySubtract();
+            break;
+        default:
+            display(content);
+            break;
     }
 }
 
@@ -87,16 +104,22 @@ function pressButton(key) {
 
 function findButton(key) {
     switch (key.toLowerCase()) {
-        case '=':
-        case 'enter':
+        case '=': case 'enter':
             return document.querySelector('#equal');
-        case 'c':
-        case 'escape':
+        case 'c': case 'escape':
             return document.querySelector('#clear');
+        case 'delete': case 'backspace':
+            return document.querySelector('#backspace');
         case '%':
             return document.querySelector('#percent');
         case 's':
             return document.querySelector('#sqrt');
+        case '(':
+            return document.querySelector('#l-paren');
+        case ')':
+            return document.querySelector('#r-paren');
+        case '^':
+            return document.querySelector('#exponent');
         default:
             const buttons = document.querySelectorAll('.keys button');
             return Array.from(buttons).find(btn => btn.textContent === key);
@@ -104,35 +127,39 @@ function findButton(key) {
 }
 
 function display(value) {
-    const result = document.getElementById("result");
-    const operators = ['+', '-', '*', '/'];
+    const resultInput = document.getElementById("result");
+    const operators = ['+', '-', '*', '/', '^'];
 
     if (isResultDisplayed) {
-        if (!operators.includes(value) && value !== '.') {
-            result.value = "";
+        if (operators.includes(value) || value === '.') {
+            isResultDisplayed = false;
+        } else {
+            resultInput.value = '';
+            isResultDisplayed = false;
         }
-        isResultDisplayed = false;
     }
 
-    const lastChar = result.value.slice(-1);
+    resultInput.value += value;
+}
 
-    if (operators.includes(lastChar) && operators.includes(value)) {
-        if (value === '-' && lastChar !== '-') {
-             result.value += value;
-        }
-        return;
-    }
 
-    if (result.value === '' && operators.includes(value) && value !== '-') {
-        return;
-    }
-
-    result.value += value;
+function backspace() {
+    const result = document.getElementById("result");
+    result.value = result.value.slice(0, -1);
+    isResultDisplayed = false;
 }
 
 function clearScreen() {
     document.getElementById("result").value = "";
     isResultDisplayed = false;
+}
+
+function triggerDisplayAnimation() {
+    const display = document.querySelector('.display');
+    display.classList.add('display-flip');
+    display.addEventListener('animationend', () => {
+        display.classList.remove('display-flip');
+    }, { once: true });
 }
 
 function calculate() {
@@ -144,9 +171,11 @@ function calculate() {
         document.getElementById("result").value = result;
         addToHistory(expression, result);
         isResultDisplayed = true;
+        triggerDisplayAnimation();
     } catch (e) {
         document.getElementById("result").value = "Error";
         isResultDisplayed = true;
+        triggerDisplayAnimation();
     }
 }
 
@@ -168,6 +197,7 @@ function calculateSquareRoot() {
         display.value = 'Error';
     }
     isResultDisplayed = true;
+    triggerDisplayAnimation();
 }
 
 function calculatePercentage() {
@@ -188,8 +218,31 @@ function calculatePercentage() {
         display.value = 'Error';
     }
     isResultDisplayed = true;
+    triggerDisplayAnimation();
 }
 
+function memoryClear() {
+    memory = 0;
+}
+
+function memoryRecall() {
+    document.getElementById('result').value = memory;
+    isResultDisplayed = true;
+}
+
+function memoryAdd() {
+    const currentValue = evaluateExpression(document.getElementById('result').value);
+    if (!isNaN(currentValue)) {
+        memory += currentValue;
+    }
+}
+
+function memorySubtract() {
+    const currentValue = evaluateExpression(document.getElementById('result').value);
+    if (!isNaN(currentValue)) {
+        memory -= currentValue;
+    }
+}
 
 function addToHistory(expression, result) {
     calculationHistory.push({ expression, result });
@@ -215,24 +268,11 @@ function clearHistory() {
 }
 
 function evaluateExpression(expression) {
-    const sanitizedExpression = expression.replace(/[^-()\d/*+.]/g, '');
-
-    if (sanitizedExpression !== expression) {
-        throw new Error("Invalid characters in expression");
-    }
-
-    let finalExpression = sanitizedExpression;
-    const lastChar = finalExpression.slice(-1);
-    if (['+', '-', '*', '/'].includes(lastChar)) {
-        finalExpression = finalExpression.slice(0, -1);
-    }
-
-    if (finalExpression === "") return "";
-
+    if (!expression) return 0;
     try {
-         return new Function('return ' + finalExpression)();
+        return math.evaluate(expression);
     } catch (error) {
-        console.error("Calculation error:", error);
+        console.error("Calculation error:", error.message);
         return "Error";
     }
 }
