@@ -3,6 +3,31 @@ let isResultDisplayed = false; // Flag to track if the last action was a calcula
 
 document.addEventListener('DOMContentLoaded', function() {
     const keys = document.querySelector('.keys');
+    const themeSwitcher = document.getElementById('theme-switcher');
+    const clearHistoryButton = document.getElementById('clear-history');
+    const body = document.body;
+
+    // --- THEME SWITCHER LOGIC ---
+    const applyTheme = (theme) => {
+        body.classList.toggle('dark-theme', theme === 'dark');
+        localStorage.setItem('calculator-theme', theme);
+    };
+
+    themeSwitcher.addEventListener('click', () => {
+        const isDark = body.classList.contains('dark-theme');
+        applyTheme(isDark ? 'light' : 'dark');
+    });
+
+    // Load saved theme
+    const savedTheme = localStorage.getItem('calculator-theme') || 'light';
+    applyTheme(savedTheme);
+    // --- END THEME SWITCHER LOGIC ---
+
+    // --- CLEAR HISTORY LOGIC ---
+    clearHistoryButton.addEventListener('click', () => {
+        clearHistory();
+    });
+    // --- END CLEAR HISTORY LOGIC ---
 
     // Handle button clicks
     keys.addEventListener('click', event => {
@@ -182,6 +207,11 @@ function updateHistory() {
     });
 
     historyList.scrollTop = historyList.scrollHeight;
+}
+
+function clearHistory() {
+    calculationHistory = [];
+    updateHistory();
 }
 
 function evaluateExpression(expression) {
