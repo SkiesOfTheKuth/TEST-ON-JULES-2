@@ -113,10 +113,11 @@ body {
 .keys {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
 }
 
 button {
-    border: 1px solid var(--calculator-border-color);
+    border: none;
     padding: 20px;
     font-size: 1.5em;
     cursor: pointer;
@@ -129,8 +130,8 @@ button:hover {
     background-color: var(--button-hover-bg-color);
 }
 
-.span-two {
-    grid-column: span 2;
+.span-three {
+    grid-column: span 3;
 }
 
 #equal {
