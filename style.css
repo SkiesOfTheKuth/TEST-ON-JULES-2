@@ -42,14 +42,18 @@ button {
     padding: 20px;
     font-size: 1.5em;
     cursor: pointer;
+    background-color: #fff;
 }
 
 button:hover {
     background-color: #ddd;
 }
 
-#equal {
+.span-two {
     grid-column: span 2;
+}
+
+#equal {
     background-color: #f0ad4e;
     color: white;
 }
@@ -65,4 +69,12 @@ button:hover {
 
 #clear:hover {
     background-color: #c9302c;
+}
+
+#sqrt, #percent {
+    background-color: #f7f7f7;
+}
+
+#sqrt:hover, #percent:hover {
+    background-color: #e7e7e7;
 }
