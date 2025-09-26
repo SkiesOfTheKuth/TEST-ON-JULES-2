@@ -1,4 +1,4 @@
-class Calculator {
+export default class Calculator {
     constructor() {
         this.calculationHistory = [];
     }

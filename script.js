@@ -1,238 +1,100 @@
-let calculationHistory = [];
-let isResultDisplayed = false; // Flag to track if the last action was a calculation
+import Calculator from './calculator.js';
+import {
+    appendToDisplay,
+    updateDisplay,
+    clearDisplay,
+    backspace,
+    getDisplayValue,
+    initializeTheme,
+    updateHistory,
+    initializeHistory,
+    pressButton
+} from './ui.js';
 
-document.addEventListener('DOMContentLoaded', function() {
+function initializeCalculator() {
+    const calculator = new Calculator();
     const keys = document.querySelector('.keys');
-    const themeSwitcher = document.getElementById('theme-switcher');
-    const clearHistoryButton = document.getElementById('clear-history');
-    const body = document.body;
 
-    // --- THEME SWITCHER LOGIC ---
-    const applyTheme = (theme) => {
-        body.classList.toggle('dark-theme', theme === 'dark');
-        localStorage.setItem('calculator-theme', theme);
-    };
-
-    themeSwitcher.addEventListener('click', () => {
-        const isDark = body.classList.contains('dark-theme');
-        applyTheme(isDark ? 'light' : 'dark');
+    initializeTheme();
+    initializeHistory(() => {
+        calculator.clearHistory();
+        updateHistory(calculator.getHistory());
     });
 
-    // Load saved theme
-    const savedTheme = localStorage.getItem('calculator-theme') || 'light';
-    applyTheme(savedTheme);
-    // --- END THEME SWITCHER LOGIC ---
+    function handleCalculation(operation) {
+        const expression = getDisplayValue();
+        if (expression === "") return;
 
-    // --- CLEAR HISTORY LOGIC ---
-    clearHistoryButton.addEventListener('click', () => {
-        clearHistory();
-    });
-    // --- END CLEAR HISTORY LOGIC ---
+        let result;
+        if (operation === 'calculate') {
+            result = calculator.calculate(expression);
+        } else if (operation === 'sqrt') {
+            result = calculator.calculateSquareRoot(expression);
+        } else if (operation === 'percent') {
+            result = calculator.calculatePercentage(expression);
+        }
+
+        if (result !== undefined) {
+            updateDisplay(result);
+            updateHistory(calculator.getHistory());
+        }
+    }
 
     // Handle button clicks
     keys.addEventListener('click', event => {
-        if (!event.target.matches('button')) {
-            return;
+        if (!event.target.matches('button')) return;
+
+        const button = event.target;
+        const action = button.id;
+        const content = button.textContent;
+
+        switch (action) {
+            case 'clear':
+                clearDisplay();
+                break;
+            case 'equal':
+                handleCalculation('calculate');
+                break;
+            case 'sqrt':
+                handleCalculation('sqrt');
+                break;
+            case 'percent':
+                handleCalculation('percent');
+                break;
+            case 'backspace':
+                backspace();
+                break;
+            default:
+                appendToDisplay(content);
+                break;
         }
-        handleAction(event.target.id, event.target.textContent);
     });
 
     // Handle keyboard input
     document.addEventListener('keydown', event => {
         const key = event.key;
-        pressButton(key); // Provide visual feedback for key press
+        pressButton(key);
 
-        if ((key >= '0' && key <= '9') || ['+', '-', '*', '/', '.'].includes(key)) {
-            display(key);
+        if ((key >= '0' && key <= '9') || ['+', '-', '*', '/', '.', '(', ')'].includes(key)) {
+            appendToDisplay(key);
         } else if (key === 'Enter' || key === '=') {
             event.preventDefault();
-            calculate();
+            handleCalculation('calculate');
         } else if (key === 'Backspace') {
-            const result = document.getElementById("result");
-            result.value = result.value.slice(0, -1);
-            isResultDisplayed = false; // User is editing
+            backspace();
         } else if (key === 'Escape' || key.toLowerCase() === 'c') {
-            clearScreen();
+            clearDisplay();
         } else if (key === '%') {
-            calculatePercentage();
+            handleCalculation('percent');
         } else if (key.toLowerCase() === 's') {
-            calculateSquareRoot();
+            handleCalculation('sqrt');
         }
     });
-});
-
-function handleAction(action, content) {
-    if (action === 'clear') {
-        clearScreen();
-    } else if (action === 'equal') {
-        calculate();
-    } else if (action === 'sqrt') {
-        calculateSquareRoot();
-    } else if (action === 'percent') {
-        calculatePercentage();
-    } else {
-        display(content);
-    }
 }
 
-function pressButton(key) {
-    const button = findButton(key);
-    if (button) {
-        button.classList.add('btn-active');
-        setTimeout(() => {
-            button.classList.remove('btn-active');
-        }, 100);
-    }
-}
-
-function findButton(key) {
-    switch (key.toLowerCase()) {
-        case '=':
-        case 'enter':
-            return document.querySelector('#equal');
-        case 'c':
-        case 'escape':
-            return document.querySelector('#clear');
-        case '%':
-            return document.querySelector('#percent');
-        case 's':
-            return document.querySelector('#sqrt');
-        default:
-            const buttons = document.querySelectorAll('.keys button');
-            return Array.from(buttons).find(btn => btn.textContent === key);
-    }
-}
-
-function display(value) {
-    const result = document.getElementById("result");
-    const operators = ['+', '-', '*', '/'];
-
-    if (isResultDisplayed) {
-        if (!operators.includes(value) && value !== '.') {
-            result.value = "";
-        }
-        isResultDisplayed = false;
-    }
-
-    const lastChar = result.value.slice(-1);
-
-    if (operators.includes(lastChar) && operators.includes(value)) {
-        if (value === '-' && lastChar !== '-') {
-             result.value += value;
-        }
-        return;
-    }
-
-    if (result.value === '' && operators.includes(value) && value !== '-') {
-        return;
-    }
-
-    result.value += value;
-}
-
-function clearScreen() {
-    document.getElementById("result").value = "";
-    isResultDisplayed = false;
-}
-
-function calculate() {
-    const expression = document.getElementById("result").value;
-    if (expression === "") return;
-
-    try {
-        const result = evaluateExpression(expression);
-        document.getElementById("result").value = result;
-        addToHistory(expression, result);
-        isResultDisplayed = true;
-    } catch (e) {
-        document.getElementById("result").value = "Error";
-        isResultDisplayed = true;
-    }
-}
-
-function calculateSquareRoot() {
-    const display = document.getElementById('result');
-    const expression = display.value;
-    if (expression === "") return;
-
-    try {
-        const evaluatedValue = evaluateExpression(expression);
-        if (isNaN(evaluatedValue) || evaluatedValue < 0) {
-            display.value = 'Error';
-        } else {
-            const result = Math.sqrt(evaluatedValue);
-            addToHistory(`√(${expression})`, result);
-            display.value = result;
-        }
-    } catch (e) {
-        display.value = 'Error';
-    }
-    isResultDisplayed = true;
-}
-
-function calculatePercentage() {
-    const display = document.getElementById('result');
-    const expression = display.value;
-    if (expression === "") return;
-
-    try {
-        const evaluatedValue = evaluateExpression(expression);
-        if (isNaN(evaluatedValue)) {
-            display.value = 'Error';
-        } else {
-            const result = evaluatedValue / 100;
-            addToHistory(`(${expression})%`, result);
-            display.value = result;
-        }
-    } catch (e) {
-        display.value = 'Error';
-    }
-    isResultDisplayed = true;
-}
-
-
-function addToHistory(expression, result) {
-    calculationHistory.push({ expression, result });
-    updateHistory();
-}
-
-function updateHistory() {
-    const historyList = document.getElementById('history-list');
-    historyList.innerHTML = '';
-
-    calculationHistory.forEach(item => {
-        const listItem = document.createElement('li');
-        listItem.textContent = `${item.expression} = ${item.result}`;
-        historyList.appendChild(listItem);
-    });
-
-    historyList.scrollTop = historyList.scrollHeight;
-}
-
-function clearHistory() {
-    calculationHistory = [];
-    updateHistory();
-}
-
-function evaluateExpression(expression) {
-    const sanitizedExpression = expression.replace(/[^-()\d/*+.]/g, '');
-
-    if (sanitizedExpression !== expression) {
-        throw new Error("Invalid characters in expression");
-    }
-
-    let finalExpression = sanitizedExpression;
-    const lastChar = finalExpression.slice(-1);
-    if (['+', '-', '*', '/'].includes(lastChar)) {
-        finalExpression = finalExpression.slice(0, -1);
-    }
-
-    if (finalExpression === "") return "";
-
-    try {
-         return new Function('return ' + finalExpression)();
-    } catch (error) {
-        console.error("Calculation error:", error);
-        return "Error";
-    }
+// Since scripts with type="module" are deferred, we need to ensure the DOM is loaded.
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeCalculator);
+} else {
+    initializeCalculator();
 }
