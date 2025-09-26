@@ -1,4 +1,4 @@
-let calculationHistory = [];
+const calculator = new Calculator();
 let isResultDisplayed = false; // Flag to track if the last action was a calculation
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const key = event.key;
         pressButton(key); // Provide visual feedback for key press
 
-        if ((key >= '0' && key <= '9') || ['+', '-', '*', '/', '.'].includes(key)) {
+        if ((key >= '0' && key <= '9') || ['+', '-', '*', '/', '.', '(', ')'].includes(key)) {
             display(key);
         } else if (key === 'Enter' || key === '=') {
             event.preventDefault();
@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
             clearScreen();
         } else if (key === '%') {
             calculatePercentage();
-        } else if (key.toLowerCase() === 's') {
+        } else if (key.toLowerCase() === 's') { // 's' for square root
             calculateSquareRoot();
         }
     });
@@ -70,7 +70,12 @@ function handleAction(action, content) {
         calculateSquareRoot();
     } else if (action === 'percent') {
         calculatePercentage();
-    } else {
+    } else if (action === 'backspace') {
+        const result = document.getElementById("result");
+        result.value = result.value.slice(0, -1);
+        isResultDisplayed = false;
+    }
+    else {
         display(content);
     }
 }
@@ -97,6 +102,12 @@ function findButton(key) {
             return document.querySelector('#percent');
         case 's':
             return document.querySelector('#sqrt');
+        case '(':
+            return document.querySelector('#l-paren');
+        case ')':
+            return document.querySelector('#r-paren');
+        case 'backspace':
+            return document.querySelector('#backspace');
         default:
             const buttons = document.querySelectorAll('.keys button');
             return Array.from(buttons).find(btn => btn.textContent === key);
@@ -108,23 +119,11 @@ function display(value) {
     const operators = ['+', '-', '*', '/'];
 
     if (isResultDisplayed) {
+        // Allow starting a new calculation with an operator
         if (!operators.includes(value) && value !== '.') {
-            result.value = "";
+            result.value = ""; // Clear if a number is pressed
         }
         isResultDisplayed = false;
-    }
-
-    const lastChar = result.value.slice(-1);
-
-    if (operators.includes(lastChar) && operators.includes(value)) {
-        if (value === '-' && lastChar !== '-') {
-             result.value += value;
-        }
-        return;
-    }
-
-    if (result.value === '' && operators.includes(value) && value !== '-') {
-        return;
     }
 
     result.value += value;
@@ -137,72 +136,39 @@ function clearScreen() {
 
 function calculate() {
     const expression = document.getElementById("result").value;
-    if (expression === "") return;
-
-    try {
-        const result = evaluateExpression(expression);
-        document.getElementById("result").value = result;
-        addToHistory(expression, result);
-        isResultDisplayed = true;
-    } catch (e) {
-        document.getElementById("result").value = "Error";
-        isResultDisplayed = true;
-    }
+    const result = calculator.calculate(expression);
+    document.getElementById("result").value = result;
+    isResultDisplayed = true;
+    updateHistory();
 }
 
 function calculateSquareRoot() {
-    const display = document.getElementById('result');
-    const expression = display.value;
-    if (expression === "") return;
-
-    try {
-        const evaluatedValue = evaluateExpression(expression);
-        if (isNaN(evaluatedValue) || evaluatedValue < 0) {
-            display.value = 'Error';
-        } else {
-            const result = Math.sqrt(evaluatedValue);
-            addToHistory(`√(${expression})`, result);
-            display.value = result;
-        }
-    } catch (e) {
-        display.value = 'Error';
-    }
+    const expression = document.getElementById('result').value;
+    const result = calculator.calculateSquareRoot(expression);
+    document.getElementById('result').value = result;
     isResultDisplayed = true;
+    updateHistory();
 }
 
 function calculatePercentage() {
-    const display = document.getElementById('result');
-    const expression = display.value;
-    if (expression === "") return;
-
-    try {
-        const evaluatedValue = evaluateExpression(expression);
-        if (isNaN(evaluatedValue)) {
-            display.value = 'Error';
-        } else {
-            const result = evaluatedValue / 100;
-            addToHistory(`(${expression})%`, result);
-            display.value = result;
-        }
-    } catch (e) {
-        display.value = 'Error';
-    }
+    const expression = document.getElementById('result').value;
+    const result = calculator.calculatePercentage(expression);
+    document.getElementById('result').value = result;
     isResultDisplayed = true;
-}
-
-
-function addToHistory(expression, result) {
-    calculationHistory.push({ expression, result });
     updateHistory();
 }
 
 function updateHistory() {
     const historyList = document.getElementById('history-list');
     historyList.innerHTML = '';
+    const history = calculator.getHistory();
 
-    calculationHistory.forEach(item => {
+    history.forEach(item => {
         const listItem = document.createElement('li');
         listItem.textContent = `${item.expression} = ${item.result}`;
+        listItem.addEventListener('click', () => {
+            document.getElementById('result').value = item.expression;
+        });
         historyList.appendChild(listItem);
     });
 
@@ -210,29 +176,6 @@ function updateHistory() {
 }
 
 function clearHistory() {
-    calculationHistory = [];
+    calculator.clearHistory();
     updateHistory();
-}
-
-function evaluateExpression(expression) {
-    const sanitizedExpression = expression.replace(/[^-()\d/*+.]/g, '');
-
-    if (sanitizedExpression !== expression) {
-        throw new Error("Invalid characters in expression");
-    }
-
-    let finalExpression = sanitizedExpression;
-    const lastChar = finalExpression.slice(-1);
-    if (['+', '-', '*', '/'].includes(lastChar)) {
-        finalExpression = finalExpression.slice(0, -1);
-    }
-
-    if (finalExpression === "") return "";
-
-    try {
-         return new Function('return ' + finalExpression)();
-    } catch (error) {
-        console.error("Calculation error:", error);
-        return "Error";
-    }
 }
