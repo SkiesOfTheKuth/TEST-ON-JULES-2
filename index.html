@@ -1,68 +1,99 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <title>Calculator</title>
-    <link rel="stylesheet" type="text/css" href="style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.2/math.min.js"></script>
-</head>
-<body>
-    <div class="app-container">
-        <div class="header">
-            <h1>Scientific Calculator</h1>
-            <button id="theme-switcher">Toggle Theme</button>
-        </div>
-        <div class="main-container">
-            <div class="calculator">
-                <div class="display">
-                    <input type="text" id="result" disabled>
-                </div>
-                <div class="keys">
-                    <button id="mem-clear">MC</button>
-                    <button id="mem-recall">MR</button>
-                    <button id="mem-plus">M+</button>
-                    <button id="mem-minus">M-</button>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Responsive scientific calculator with calculation history, keyboard support, and theme switching."
+    />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self'; img-src 'self' data:; connect-src 'self'; font-src 'self'; base-uri 'self'; form-action 'self'"
+    />
+    <title>Scientific Calculator</title>
+    <link rel="stylesheet" href="style.css" />
+    <script type="importmap" src="import-map.json"></script>
+  </head>
+  <body>
+    <header class="header" role="banner">
+      <h1>Scientific Calculator</h1>
+      <button id="theme-switcher" type="button" aria-pressed="false">Toggle theme</button>
+    </header>
+    <main class="app-container" aria-labelledby="calculator-heading">
+      <div class="main-container">
+        <section class="calculator" aria-live="polite">
+          <div class="calculator-header">
+            <h2 id="calculator-heading">Calculator</h2>
+          </div>
+          <div class="display">
+            <input
+              id="result"
+              type="text"
+              inputmode="decimal"
+              aria-live="polite"
+              aria-label="Calculator display"
+              readonly
+            />
+          </div>
+          <div class="keys" role="group" aria-label="Calculator keys">
+            <button id="mem-clear" type="button">MC</button>
+            <button id="mem-recall" type="button">MR</button>
+            <button id="mem-plus" type="button">M+</button>
+            <button id="mem-minus" type="button">M-</button>
 
-                    <button id="l-paren">(</button>
-                    <button id="r-paren">)</button>
-                    <button id="exponent">^</button>
-                    <button id="backspace">DEL</button>
+            <button id="l-paren" type="button">(</button>
+            <button id="r-paren" type="button">)</button>
+            <button id="exponent" type="button">^</button>
+            <button id="backspace" type="button">DEL</button>
 
-                    <button id="clear">C</button>
-                    <button id="sqrt">√</button>
-                    <button id="percent">%</button>
-                    <button id="divide">/</button>
+            <button id="clear" type="button" class="danger">C</button>
+            <button id="sqrt" type="button">√</button>
+            <button id="percent" type="button">%</button>
+            <button id="divide" type="button">/</button>
 
-                    <button>7</button>
-                    <button>8</button>
-                    <button>9</button>
-                    <button id="multiply">*</button>
+            <button type="button">7</button>
+            <button type="button">8</button>
+            <button type="button">9</button>
+            <button id="multiply" type="button">*</button>
 
-                    <button>4</button>
-                    <button>5</button>
-                    <button>6</button>
-                    <button id="subtract">-</button>
+            <button type="button">4</button>
+            <button type="button">5</button>
+            <button type="button">6</button>
+            <button id="subtract" type="button">-</button>
 
-                    <button>1</button>
-                    <button>2</button>
-                    <button>3</button>
-                    <button id="add">+</button>
+            <button type="button">1</button>
+            <button type="button">2</button>
+            <button type="button">3</button>
+            <button id="add" type="button">+</button>
 
-                    <button>0</button>
-                    <button>.</button>
-                    <button id="equal" class="span-two">=</button>
-                </div>
-            </div>
-            <div class="history-panel">
-                <div class="history-header">
-                    <h3>History</h3>
-                    <button id="clear-history">Clear</button>
-                </div>
-                <ul id="history-list">
-                    <!-- Calculation history will be added here -->
-                </ul>
-            </div>
-        </div>
-    </div>
-    <script src="script.js"></script>
-</body>
+            <button type="button">0</button>
+            <button type="button">.</button>
+            <button id="equal" class="span-two" type="button">=</button>
+          </div>
+        </section>
+        <section class="history-panel" aria-live="polite">
+          <div class="history-header">
+            <h2>History</h2>
+            <button id="clear-history" type="button">Clear</button>
+          </div>
+          <div class="history-consent" role="group" aria-labelledby="history-consent-label">
+            <label class="history-consent__toggle">
+              <input
+                type="checkbox"
+                id="history-consent"
+                aria-describedby="history-consent-note"
+              />
+              <span id="history-consent-label">Remember history on this device</span>
+            </label>
+            <p class="history-consent__note" id="history-consent-note">
+              History is only stored locally after you opt in and is automatically cleared after 30 days.
+            </p>
+          </div>
+          <ul id="history-list" aria-label="Calculation history"></ul>
+        </section>
+      </div>
+    </main>
+    <script type="module" src="script.js"></script>
+  </body>
 </html>

@@ -1,0 +1,37 @@
+{
+  "name": "scientific-calculator",
+  "version": "0.1.0",
+  "description": "Accessible scientific calculator with history and theming.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "npx http-server -c-1 -p 4173 .",
+    "lint:js": "eslint . --ext .js",
+    "lint:css": "stylelint \"**/*.{css,scss}\"",
+    "lint": "npm run lint:js && npm run lint:css",
+    "format": "prettier --write .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage"
+  },
+  "keywords": [
+    "calculator",
+    "math",
+    "frontend"
+  ],
+  "engines": {
+    "node": ">=18.18.0"
+  },
+  "dependencies": {
+    "mathjs": "^12.4.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.10.0",
+    "eslint": "^9.10.0",
+    "http-server": "^14.1.1",
+    "prettier": "^3.3.3",
+    "stylelint": "^16.8.1",
+    "stylelint-config-standard": "^36.0.1",
+    "vitest": "^2.1.1"
+  }
+}
