@@ -1,5 +1,0 @@
-{
-  "imports": {
-    "mathjs": "https://cdn.jsdelivr.net/npm/mathjs@12.4.2/+esm"
-  }
-}

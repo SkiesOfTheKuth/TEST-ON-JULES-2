@@ -5,7 +5,7 @@ An accessible scientific calculator web app with calculation history, keyboard c
 ## Features
 - Responsive and accessible calculator UI with opt-in persistent history and memory functions.
 - Dark/light theme with system preference detection and user persistence.
-- Input sanitisation and math evaluation powered by [`mathjs`](https://mathjs.org/).
+- Input sanitisation backed by a hardened expression parser that supports parentheses, exponentiation, and unary operators.
 - Automated linting (ESLint + Stylelint), formatting (Prettier), and unit tests (Vitest).
 
 ## Getting Started
@@ -36,7 +36,7 @@ npm run format     # Format files with Prettier
 
 ## Project Structure
 ```
-├── index.html            # Entry point with import map for mathjs
+├── index.html            # Entry point with strict CSP and module loader
 ├── script.js             # UI logic (ES module)
 ├── src/
 │   └── lib/
