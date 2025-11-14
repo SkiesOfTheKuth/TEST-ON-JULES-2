@@ -17,7 +17,7 @@ class Calculator {
 
         const outputQueue = [];
         const operatorStack = [];
-        const tokens = expression.match(/(\d+\.?\d*)|([+\-*/()])/g) || [];
+        const tokens = expression.replace(/\s+/g, '').match(/(\d+\.?\d*)|([+\-*/()])/g) || [];
 
         tokens.forEach(token => {
             if (!isNaN(parseFloat(token))) {
