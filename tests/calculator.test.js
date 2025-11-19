@@ -27,6 +27,22 @@ describe('evaluateExpression', () => {
   it('throws on invalid expression', () => {
     expect(() => evaluateExpression('2++3')).toThrow();
   });
+
+  it('supports exponentiation with right associativity', () => {
+    expect(evaluateExpression('2^3^2')).toBe(512);
+  });
+
+  it('evaluates unary minus and parentheses', () => {
+    expect(evaluateExpression('-(2+3)')).toBe(-5);
+  });
+
+  it('throws on division by zero', () => {
+    expect(() => evaluateExpression('10/0')).toThrow(/divide by zero/i);
+  });
+
+  it('throws on mismatched parentheses', () => {
+    expect(() => evaluateExpression('(2+3')).toThrow(/parentheses/i);
+  });
 });
 
 describe('evaluateSquareRoot', () => {

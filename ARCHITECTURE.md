@@ -1,19 +1,19 @@
 # Architecture Overview
 
 ## System Context
-A single-page scientific calculator served as static assets. The UI is implemented with modern ES modules and relies on the `mathjs` library via import maps. Persistent client-side state is stored in `localStorage`.
+A single-page scientific calculator served as static assets. The UI is implemented with modern ES modules and relies on an internal expression parser—no third-party runtime dependencies. Persistent client-side state is stored in `localStorage`.
 
 ```
 +------------------+        HTTPS        +----------------------+
 | Browser Client   | <-----------------> | Static Hosting (CDN) |
 +------------------+                     +----------------------+
           |                                      |
-          |  Import map fetches mathjs           |
+          |  Module script loads UI + parser     |
           +--------------------------------------+
 ```
 
 ## Module Boundaries
-- `index.html` declares the import map and bootstraps the UI module.
+- `index.html` enforces a strict CSP and bootstraps the UI module.
 - `script.js` manages DOM events, user interactions, and persistence concerns.
 - `src/lib/calculator.js` contains pure functions and the `MemoryRegister` class; it is unit-testable and shared between browser code and tests.
 - `tests/` executes unit coverage using Vitest.
@@ -31,4 +31,4 @@ A single-page scientific calculator served as static assets. The UI is implement
 ## Extensibility Notes
 - Additional operations should be implemented within `src/lib/calculator.js` and exposed via exported functions.
 - Consider extracting UI logic into a lightweight framework (Svelte/React) if state management grows.
-- The import map allows swapping math providers (OSS or self-hosted) without changing application code.
+- Additional math operators should extend the expression parser to keep evaluations sandboxed from the DOM.

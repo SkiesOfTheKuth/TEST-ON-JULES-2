@@ -10,11 +10,14 @@ import {
 
 const THEME_STORAGE_KEY = 'calculator-theme';
 const HISTORY_STORAGE_KEY = 'calculator-history-v1';
+const HISTORY_CONSENT_KEY = 'calculator-history-consent';
+const HISTORY_RETENTION_MS = 1000 * 60 * 60 * 24 * 30;
 const MAX_DISPLAY_LENGTH = 32;
 
 const memoryRegister = new MemoryRegister();
 let calculationHistory = [];
 let isResultDisplayed = false;
+let hasHistoryConsent = false;
 
 if (typeof document !== 'undefined') {
   document.addEventListener('DOMContentLoaded', () => {
@@ -22,15 +25,37 @@ if (typeof document !== 'undefined') {
     const themeSwitcher = document.getElementById('theme-switcher');
     const clearHistoryButton = document.getElementById('clear-history');
     const historyList = document.getElementById('history-list');
+    const historyConsentToggle = document.getElementById('history-consent');
     const resultInput = document.getElementById('result');
 
     restoreTheme(themeSwitcher);
-    calculationHistory = restoreHistory(historyList);
+    hasHistoryConsent = restoreHistoryConsent(historyConsentToggle);
+    calculationHistory = restoreHistory(historyList, hasHistoryConsent);
+    updateHistoryConsentNote(hasHistoryConsent);
 
     themeSwitcher?.addEventListener('click', () => {
       const isDark = document.documentElement.dataset.theme === 'dark';
       const nextTheme = isDark ? 'light' : 'dark';
       applyTheme(nextTheme, themeSwitcher);
+    });
+
+    historyConsentToggle?.addEventListener('change', (event) => {
+      if (!isCheckboxElement(event.target)) {
+        return;
+      }
+
+      hasHistoryConsent = event.target.checked;
+      persistHistoryConsent(hasHistoryConsent);
+
+      if (!hasHistoryConsent) {
+        calculationHistory = [];
+        clearPersistedHistory();
+      } else {
+        persistHistory(calculationHistory);
+      }
+
+      updateHistory(historyList, calculationHistory);
+      updateHistoryConsentNote(hasHistoryConsent);
     });
 
     clearHistoryButton?.addEventListener('click', () => {
@@ -317,7 +342,12 @@ function updateHistory(historyList, history) {
   historyList.scrollTop = historyList.scrollHeight;
 }
 
-function restoreHistory(historyList) {
+function restoreHistory(historyList, consentGranted) {
+  if (!consentGranted) {
+    updateHistory(historyList, []);
+    return [];
+  }
+
   try {
     const stored = localStorage.getItem(HISTORY_STORAGE_KEY);
     if (!stored) {
@@ -325,12 +355,24 @@ function restoreHistory(historyList) {
     }
 
     const parsed = JSON.parse(stored);
-    if (!Array.isArray(parsed)) {
+    const payload = Array.isArray(parsed)
+      ? { entries: parsed, savedAt: Date.now() }
+      : parsed;
+
+    if (!payload || !Array.isArray(payload.entries)) {
       return [];
     }
 
-    updateHistory(historyList, parsed);
-    return parsed;
+    if (
+      typeof payload.savedAt === 'number' &&
+      Date.now() - payload.savedAt > HISTORY_RETENTION_MS
+    ) {
+      clearPersistedHistory();
+      return [];
+    }
+
+    updateHistory(historyList, payload.entries);
+    return payload.entries;
   } catch (error) {
     console.error('Unable to restore history', error);
     return [];
@@ -338,11 +380,71 @@ function restoreHistory(historyList) {
 }
 
 function persistHistory(history) {
+  if (!hasHistoryConsent) {
+    clearPersistedHistory();
+    return;
+  }
+
   try {
-    localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history));
+    const payload = { entries: history, savedAt: Date.now() };
+    localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(payload));
   } catch (error) {
     console.error('Unable to persist history', error);
   }
+}
+
+function clearPersistedHistory() {
+  try {
+    localStorage.removeItem(HISTORY_STORAGE_KEY);
+  } catch (error) {
+    console.error('Unable to clear history', error);
+  }
+}
+
+function restoreHistoryConsent(toggle) {
+  try {
+    const stored = localStorage.getItem(HISTORY_CONSENT_KEY);
+    const consentGranted = stored === 'true';
+    if (isCheckboxElement(toggle)) {
+      toggle.checked = consentGranted;
+    }
+    return consentGranted;
+  } catch (error) {
+    console.error('Unable to read consent preference', error);
+    return false;
+  }
+}
+
+function persistHistoryConsent(consentGranted) {
+  try {
+    if (consentGranted) {
+      localStorage.setItem(HISTORY_CONSENT_KEY, 'true');
+    } else {
+      localStorage.removeItem(HISTORY_CONSENT_KEY);
+      clearPersistedHistory();
+    }
+  } catch (error) {
+    console.error('Unable to persist consent preference', error);
+  }
+}
+
+function updateHistoryConsentNote(consentGranted) {
+  const note = document.getElementById('history-consent-note');
+  if (!note) {
+    return;
+  }
+
+  note.textContent = consentGranted
+    ? 'History is stored locally for up to 30 days. Clear it anytime from this panel.'
+    : 'History is not saved until you opt in. Calculations disappear when you leave the page.';
+}
+
+function isCheckboxElement(element) {
+  return (
+    typeof HTMLInputElement !== 'undefined' &&
+    element instanceof HTMLInputElement &&
+    element.type === 'checkbox'
+  );
 }
 
 function restoreTheme(themeSwitcher) {

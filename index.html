@@ -7,15 +7,12 @@
       name="description"
       content="Responsive scientific calculator with calculation history, keyboard support, and theme switching."
     />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; font-src 'self'; base-uri 'self'; form-action 'self'"
+    />
     <title>Scientific Calculator</title>
     <link rel="stylesheet" href="style.css" />
-    <script type="importmap">
-      {
-        "imports": {
-          "mathjs": "https://cdn.jsdelivr.net/npm/mathjs@12.4.2/+esm"
-        }
-      }
-    </script>
   </head>
   <body>
     <header class="header" role="banner">
@@ -78,6 +75,19 @@
           <div class="history-header">
             <h2>History</h2>
             <button id="clear-history" type="button">Clear</button>
+          </div>
+          <div class="history-consent" role="group" aria-labelledby="history-consent-label">
+            <label class="history-consent__toggle">
+              <input
+                type="checkbox"
+                id="history-consent"
+                aria-describedby="history-consent-note"
+              />
+              <span id="history-consent-label">Remember history on this device</span>
+            </label>
+            <p class="history-consent__note" id="history-consent-note">
+              History is only stored locally after you opt in and is automatically cleared after 30 days.
+            </p>
           </div>
           <ul id="history-list" aria-label="Calculation history"></ul>
         </section>

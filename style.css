@@ -253,6 +253,32 @@ button:focus-visible {
   padding-bottom: 12px;
 }
 
+.history-consent {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+
+.history-consent__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.history-consent__toggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--focus-ring-color);
+}
+
+.history-consent__note {
+  margin: 0;
+  color: var(--history-text-color);
+  line-height: 1.4;
+}
+
 .history-header h2 {
   margin: 0;
   font-size: 1.2rem;
